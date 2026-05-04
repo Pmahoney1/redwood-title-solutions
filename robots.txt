@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://www.redwoodtitlesolutions.com/sitemap.xml

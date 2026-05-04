@@ -1,14 +1,12 @@
 /* ============================================================
-   REDWOOD TITLE PARTNERS — main.js
-   Handles: dark mode, nav scroll, mobile menu, splitting.js,
-   scroll animations, contact form, char animation delays
+   REDWOOD TITLE SOLUTIONS v2 — main.js
    ============================================================ */
 
 /* ---- DARK MODE TOGGLE ---- */
 (function () {
   const toggle = document.querySelector('[data-theme-toggle]');
   const root   = document.documentElement;
-  let theme    = 'light'; // Always default to light
+  let theme    = 'light';
 
   root.setAttribute('data-theme', theme);
   updateToggleIcon();
@@ -34,7 +32,6 @@
 (function () {
   const nav = document.getElementById('nav');
   if (!nav) return;
-
   const onScroll = () => {
     nav.classList.toggle('scrolled', window.scrollY > 16);
   };
@@ -59,8 +56,7 @@
   }
 
   hamburger.addEventListener('click', () => {
-    const isOpen = hamburger.classList.contains('open');
-    toggle(!isOpen);
+    toggle(!hamburger.classList.contains('open'));
   });
 
   links.forEach(link => {
@@ -75,21 +71,17 @@
 /* ---- SPLITTING.JS HERO HEADLINE ---- */
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof Splitting === 'function') {
-    const results = Splitting({ target: '.hero__headline', by: 'chars' });
-
+    const results = Splitting({ target: '.hero__headline[data-splitting]', by: 'chars' });
     results.forEach(result => {
       result.chars.forEach((char, i) => {
-        // Start after eyebrow animation (0.5s), stagger 30ms per char
         char.style.animationDelay = `${0.5 + i * 0.03}s`;
       });
     });
   }
 });
 
-/* ---- SCROLL-DRIVEN ANIMATION FALLBACK (IntersectionObserver) ---- */
+/* ---- SCROLL-DRIVEN ANIMATION FALLBACK ---- */
 (function () {
-  // CSS scroll-driven handles it where supported.
-  // This is a lightweight fallback for Safari < 17.
   const supportsScrollTimeline = CSS.supports('animation-timeline', 'scroll()');
   if (supportsScrollTimeline) return;
 
@@ -112,7 +104,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 })();
 
-/* ---- STAGGER SERVICE CARDS ---- */
+/* ---- STAGGER CARDS ---- */
 (function () {
   document.querySelectorAll('.services__grid .service-card').forEach((card, i) => {
     card.style.transitionDelay = `${i * 0.05}s`;
@@ -134,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = form.querySelector('button[type="submit"]');
     const btnText = btn.querySelector('.btn__text');
 
-    // Validate
     let isValid = true;
     form.querySelectorAll('[required]').forEach(field => {
       if (!field.value.trim()) {
@@ -147,23 +138,34 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     if (!isValid) return;
 
-    // Simulate send
     btn.disabled = true;
-    btnText.textContent = 'Sending…';
+    if (btnText) btnText.textContent = 'Sending…';
 
     setTimeout(() => {
       btn.disabled = false;
-      btnText.textContent = 'Send Message';
+      if (btnText) btnText.textContent = 'Send Message';
       form.reset();
       success.classList.add('visible');
-      lucide.createIcons();
-
+      if (typeof lucide !== 'undefined') lucide.createIcons();
       setTimeout(() => success.classList.remove('visible'), 8000);
     }, 1400);
   });
 })();
 
-/* ---- LUCIDE ICONS — render after DOM ready ---- */
+/* ---- URL PARAMS — PRE-SELECT FORM FIELDS ---- */
+(function () {
+  const params = new URLSearchParams(window.location.search);
+  const issueType = params.get('issue');
+  if (issueType) {
+    const select = document.getElementById('issueType');
+    if (select) {
+      const option = select.querySelector(`option[value="${CSS.escape(issueType)}"]`);
+      if (option) option.selected = true;
+    }
+  }
+})();
+
+/* ---- LUCIDE ICONS ---- */
 document.addEventListener('DOMContentLoaded', () => {
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
@@ -173,7 +175,9 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ---- SMOOTH ACTIVE NAV STATE ---- */
 (function () {
   const sections = document.querySelectorAll('section[id]');
-  const navLinks = document.querySelectorAll('.nav__links a');
+  const navLinks = document.querySelectorAll('.nav__links > a, .nav__links > .nav__dropdown > a');
+
+  if (!sections.length || !navLinks.length) return;
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(entry => {
